@@ -34,28 +34,28 @@ WEATHER_ICONS = {
     0: ("[yellow bold]󰖨[/]", "Clear sky"),
     1: ("[blue bold][/]", "Mainly clear"),
     2: ("[blue bold][/]", "Partly cloudy"),
-    3: ("☁️", "Overcast"),
-    45: ("🌫️", "Fog"),
-    48: ("🌫️", "Rime fog"),
-    51: ("🌦️", "Light drizzle"),
-    53: ("🌦️", "Moderate drizzle"),
-    55: ("🌧️", "Dense drizzle"),
-    61: ("🌧️", "Slight rain"),
-    63: ("🌧️", "Moderate rain"),
-    65: ("🌧️", "Heavy rain"),
-    71: ("🌨️", "Slight snow"),
-    73: ("🌨️", "Moderate snow"),
-    75: ("❄️", "Heavy snow"),
-    80: ("🌦️", "Slight rain showers"),
-    81: ("🌧️", "Moderate rain showers"),
-    82: ("⛈️", "Violent rain showers"),
-    95: ("⛈️", "Thunderstorm"),
-    96: ("⛈️", "Thunderstorm + hail"),
-    99: ("⛈️", "Severe thunderstorm"),
+    3: ("[white bold]󰖐[/]", "Overcast"),
+    45: ("[grey62 bold]󰖑[/]", "Fog"),
+    48: ("[grey62 bold]󰖑[/]", "Rime fog"),
+    51: ("[blue]󰖗[/]", "Light drizzle"),
+    53: ("[blue bold]󰖗[/]", "Moderate drizzle"),
+    55: ("[blue bold]󰖖[/]", "Dense drizzle"),
+    61: ("[blue]󰖗[/]", "Slight rain"),
+    63: ("[blue bold]󰖖[/]", "Moderate rain"),
+    65: ("[bold dodger_blue2]󰖖[/]", "Heavy rain"),
+    71: ("[cyan]󰖘[/]", "Slight snow"),
+    73: ("[cyan bold]󰖘[/]", "Moderate snow"),
+    75: ("[bold white]󰖘[/]", "Heavy snow"),
+    80: ("[blue]󰖗[/]", "Slight rain showers"),
+    81: ("[blue bold]󰖖[/]", "Moderate rain showers"),
+    82: ("[bold dodger_blue2]󰖖[/]", "Violent rain showers"),
+    95: ("[yellow bold]󰖓[/]", "Thunderstorm"),
+    96: ("[bold magenta]󰖒[/]", "Thunderstorm + hail"),
+    99: ("[bold red]󰖓[/]", "Severe thunderstorm"),
 }
 
-# Clear/cloudy codes get a moon instead of a sun at night
-NIGHT_OVERRIDE = {0: "[blue bold][/]", 1: "[blue bold][/]", 2: "☁️", 3: "☁️"}
+# Clear/cloudy codes get a moon instead of a sun at night.
+NIGHT_OVERRIDE = {0: "[blue bold][/]", 1: "[blue bold][/]"}
 
 
 SPARK_BLOCKS = "▁▂▃▄▅▆▇█"
@@ -127,12 +127,11 @@ def sparkline(values):
     )
 
 
-def bar(value, max_value, width=12, filled_char="[green]█[/]", empty_char="░"):
+def bar(value, max_value, width=12, filled_char="█", empty_char="░"):
     """A simple horizontal gauge: value/max_value drawn as filled blocks."""
     ratio = max(0.0, min(1.0, value / max_value)) if max_value else 0.0
     filled = round(ratio * width)
-    return filled_char * filled + empty_char * (width - filled)
-
+    return f"[green]{filled_char * filled}[/]{empty_char * (width - filled)}"
 
 def get_today_temps(data):
     """All hourly temperatures that belong to today's calendar date."""

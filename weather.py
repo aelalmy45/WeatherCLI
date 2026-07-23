@@ -1,11 +1,12 @@
 import requests, json
 from datetime import datetime
+from config import LATITUDE, LONGITUDE
 
 url = "https://api.open-meteo.com/v1/forecast"
 
 param = {
-        "latitude": 30.076875686645508,
-        "longitude": 31.200297474861145,
+        "latitude": LATITUDE,
+        "longitude": LONGITUDE,
         "hourly": [
             "temperature_2m", 
             "apparent_temperature", 
