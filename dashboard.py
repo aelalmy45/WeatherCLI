@@ -181,7 +181,7 @@ def current_panel(data):
         f"[{color}]{c['temperature_2m']}°C[/{color}]  {icon}  {desc}\n"
         f"Feels like: {c['apparent_temperature']}°C\n\n"
         f"[blue bold][/] Humidity  {humidity_bar}  {c['relative_humidity_2m']}%\n"
-        f"[white bold][/]  Wind      {wind_bar}  {c['wind_speed_10m']} km/h"
+        f"[white bold][/]  Wind     {wind_bar}  {c['wind_speed_10m']} km/h"
     )
     return Panel(
         Align.left(body),
@@ -189,7 +189,7 @@ def current_panel(data):
         subtitle=f"Data fetched: {data.get('last_updated', '—')}",
         border_style="cyan",
         box=box.ROUNDED,
-        padding=(0, 4)
+        padding=(1, 4)
     )
 
 
@@ -210,16 +210,16 @@ def daily_panel(data):
 
     body = (
         f"Max: [bold red]{d['temperature_2m_max'][0]}°C[/bold red]   "
-        f"Min: [bold cyan]{d['temperature_2m_min'][0]}°C[/bold cyan]\n"
+        f"Min: [bold cyan]{d['temperature_2m_min'][0]}°C[/bold cyan]\n\n"
         f"Trend:  {spark}\n\n"
         f"{day_bar}\n"
         f"↑ {sunrise:<45}{sunset} ↓\n\n"
         f"[yellow bold]󱣖[/]  UV Index  {uv_bar}  {uv} {uv_level}"
     )
-    return Panel(body, title="[bold magenta][/] Today", border_style="magenta", box=box.ROUNDED, padding=(0, 4))
+    return Panel(body, title="[bold magenta][/] Today", border_style="magenta", box=box.ROUNDED, padding=(1, 4))
 
 
-def hourly_table(data, hours_ahead=8):
+def hourly_table(data, hours_ahead=6):
     h = data["hourly"]
     start = find_current_index(h)
     end = min(start + hours_ahead, len(h["time"]))
