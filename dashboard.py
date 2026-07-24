@@ -150,14 +150,14 @@ def _to_minutes(hhmm):
 
 
 def day_position_bar(data, width=24):
-    """A 24-char bar with ↑ at sunrise, ↓ at sunset, ● at right now."""
+    """A 24-char bar with ↑ at sunrise, ↓ at sunset, 󰖨 / at right now."""
     d = data["daily"]
     sunrise_min = _to_minutes(d["sunrise"][0].split("T")[1])
     sunset_min = _to_minutes(d["sunset"][0].split("T")[1])
     now = datetime.now()
     now_min = now.hour * 60 + now.minute
     is_day = sunrise_min <= now_min < sunset_min
-    now_icon = "[yellow bold][/]" if is_day else "[blue bold][/]"
+    now_icon = "[yellow bold]󰖨[/]" if is_day else "[blue bold][/]"
 
     def pos(m):
         return min(width - 1, max(0, round(m / (24 * 60) * (width - 1))))
