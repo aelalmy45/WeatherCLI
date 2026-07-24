@@ -32,8 +32,8 @@ DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json"
 # WMO weather_code -> (icon, description)
 WEATHER_ICONS = {
     0: ("[yellow bold]󰖨[/]", "Clear sky"),
-    1: ("[blue bold][/]", "Mainly clear"),
-    2: ("[blue bold][/]", "Partly cloudy"),
+    1: ("[bold #C0EFFA][/]", "Mainly clear"),
+    2: ("[bold #C0EFFA][/]", "Partly cloudy"),
     3: ("[white bold]󰖐[/]", "Overcast"),
     45: ("[grey62 bold]󰖑[/]", "Fog"),
     48: ("[grey62 bold]󰖑[/]", "Rime fog"),
@@ -121,17 +121,17 @@ def sparkline(values):
     if hi == lo:
         return SPARK_BLOCKS[0] * len(values)
     span = hi - lo
-    return "".join(
+    return f'[#AFF233]{"".join(
         SPARK_BLOCKS[round((v - lo) / span * (len(SPARK_BLOCKS) - 1))]
         for v in values
-    )
+    )}[/]'
 
 
 def bar(value, max_value, width=12, filled_char="█", empty_char="░"):
     """A simple horizontal gauge: value/max_value drawn as filled blocks."""
     ratio = max(0.0, min(1.0, value / max_value)) if max_value else 0.0
     filled = round(ratio * width)
-    return f"[green]{filled_char * filled}[/]{empty_char * (width - filled)}"
+    return f"[#AFF233]{filled_char * filled}[/]{empty_char * (width - filled)}"
 
 def get_today_temps(data):
     """All hourly temperatures that belong to today's calendar date."""
@@ -185,7 +185,7 @@ def current_panel(data):
     )
     return Panel(
         Align.left(body),
-        title="[blue bold][/]  Current Weather",
+        title="[bold cyan][/]  Current Weather",
         subtitle=f"Data fetched: {data.get('last_updated', '—')}",
         border_style="cyan",
         box=box.ROUNDED,
@@ -216,7 +216,7 @@ def daily_panel(data):
         f"↑ {sunrise:<45}{sunset} ↓\n\n"
         f"[yellow bold]󱣖[/]  UV Index  {uv_bar}  {uv} {uv_level}"
     )
-    return Panel(body, title="[blue bold][/] Today", border_style="magenta", box=box.ROUNDED, padding=(0, 4))
+    return Panel(body, title="[bold magenta][/] Today", border_style="magenta", box=box.ROUNDED, padding=(0, 4))
 
 
 def hourly_table(data, hours_ahead=8):
