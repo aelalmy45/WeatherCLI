@@ -176,6 +176,7 @@ def current_panel(data):
 
     humidity_bar = bar(c["relative_humidity_2m"], 100)
     wind_bar = bar(c["wind_speed_10m"], 60)
+    date_fetch = data['last_updated'].split("T")
 
     body = (
         f"[{color}]{c['temperature_2m']}°C[/{color}]  {icon}  {desc}\n"
@@ -186,7 +187,7 @@ def current_panel(data):
     return Panel(
         Align.left(body),
         title="[bold cyan][/]  Current Weather",
-        subtitle=f"Data fetched: {data.get('last_updated', '—')}",
+        subtitle=f"Data fetched: {' | '.join(date_fetch)}",
         border_style="cyan",
         box=box.ROUNDED,
         padding=(1, 4)
