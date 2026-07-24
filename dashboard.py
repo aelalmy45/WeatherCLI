@@ -242,7 +242,7 @@ def hourly_table(data, hours_ahead=8):
 
 
 def main():
-    console = Console()
+    console = Console(record=True)
     data = load_data()
 
     console.print(current_panel(data))
