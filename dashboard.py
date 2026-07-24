@@ -189,6 +189,7 @@ def current_panel(data):
         subtitle=f"Data fetched: {data.get('last_updated', '—')}",
         border_style="cyan",
         box=box.ROUNDED,
+        padding=(0, 4)
     )
 
 
@@ -215,7 +216,7 @@ def daily_panel(data):
         f"↑ {sunrise:<45}{sunset} ↓\n\n"
         f"[yellow bold]󱣖[/]  UV Index  {uv_bar}  {uv} {uv_level}"
     )
-    return Panel(body, title="[blue bold][/] Today", border_style="magenta", box=box.ROUNDED)
+    return Panel(body, title="[blue bold][/] Today", border_style="magenta", box=box.ROUNDED, padding=(0, 4))
 
 
 def hourly_table(data, hours_ahead=8):
@@ -223,7 +224,7 @@ def hourly_table(data, hours_ahead=8):
     start = find_current_index(h)
     end = min(start + hours_ahead, len(h["time"]))
 
-    table = Table(title="[white]󱑆[/]  Next Hours", box=box.SIMPLE_HEAVY)
+    table = Table(title="[white]󱑆[/]  Next Hours", box=box.SIMPLE_HEAVY, highlight=True, expand=True)
     table.add_column("Time", style="bold")
     table.add_column("Temp", justify="center")
     table.add_column("Sky", justify="center")
