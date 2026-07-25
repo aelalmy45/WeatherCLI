@@ -58,6 +58,7 @@ with console.status("[bold green]Progress...[/]"):
         
         with open("data.json", "w", encoding="utf-8") as f:
             json.dump(req, f, indent=4, ensure_ascii=False)
+        console.print("[bold green]󰄬 Done[/]")
             
     except requests.exceptions.Timeout:
         console.print("[red]Request timed out. Server didn't respond in time.[/]")
