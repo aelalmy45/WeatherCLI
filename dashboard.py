@@ -157,7 +157,7 @@ def day_position_bar(data, width=24):
     now = datetime.now()
     now_min = now.hour * 60 + now.minute
     is_day = sunrise_min <= now_min < sunset_min
-    now_icon = "[yellow bold]󰖨[/]" if is_day else "[blue bold][/]"
+    now_icon = "[yellow bold]󰖨[/]" if is_day else "[bold #B5DEDF][/]"
 
     def pos(m):
         return min(width - 1, max(0, round(m / (24 * 60) * (width - 1))))
