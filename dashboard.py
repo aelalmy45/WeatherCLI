@@ -19,7 +19,6 @@ import json
 import os
 from datetime import datetime
 import re
-from functools import lru_cache
 
 from rich.console import Console
 from rich.panel import Panel
@@ -30,8 +29,6 @@ from rich import box
 # Path is relative to this script's own location, not to the folder
 # you happen to be standing in when it gets launched.
 DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json") 
-
-last_mtime = None
 
 
 # WMO weather_code -> (icon, description)
@@ -84,17 +81,6 @@ def temp_color(temp):
 
 
 def load_data(path=DATA_FILE):
-    global last_mtime
-    current_mtime = os.path.getmtime(path)
-    
-    if last_mtime != current_mtime:
-        _load_data.cache_clear()
-        last_mtime = current_mtime
-    
-    return _load_data(path)
-
-@lru_cache(maxsize=790)
-def _load_data(path):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -268,4 +254,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+     main()
