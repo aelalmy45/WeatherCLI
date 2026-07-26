@@ -2,7 +2,10 @@
 
 A beautiful terminal weather dashboard built with Python and Rich.
 
-![Screenshot from WeatherCLI](images/Screenshot.jpg)
+![Screenshot1 from WeatherCLI](images/Screenshot1.jpg)
+
+![Screenshot2 from WeatherCLI](images/Screenshot2.jpg)
+
 
 ## Features
 
