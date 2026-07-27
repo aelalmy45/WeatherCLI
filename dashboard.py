@@ -16,8 +16,10 @@ Run:
 """
 
 import json
-import os
+import os 
+from pathlib import Path
 from datetime import datetime
+import subprocess
 import re
 
 from rich.console import Console
@@ -28,7 +30,11 @@ from rich import box
 
 # Path is relative to this script's own location, not to the folder
 # you happen to be standing in when it gets launched.
-DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json") 
+
+COMMON_PATH = Path("~").expanduser() / "WeatherCLI"
+DATA_FILE = COMMON_PATH / "data.json"
+WEATHER_FILE = COMMON_PATH / "weather.py"
+
 
 
 # WMO weather_code -> (icon, description)
@@ -80,9 +86,27 @@ def temp_color(temp):
     return "bold cyan"
 
 
+def create_file():
+    if not DATA_FILE.exists():
+        try:
+            subprocess.run(
+                ["python", WEATHER_FILE],
+                cwd=COMMON_PATH,
+                check=True,
+            )
+            return True
+        except subprocess.CalledProcessError:
+            return False
+    return True
+
+
 def load_data(path=DATA_FILE):
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    if create_file():
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    else:
+        print("❌ Failed to create data file")
+        return None
 
 
 def find_current_index(hourly):
