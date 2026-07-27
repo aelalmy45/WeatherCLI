@@ -16,7 +16,6 @@ Run:
 """
 
 import json
-import os 
 from pathlib import Path
 from datetime import datetime
 import subprocess
@@ -28,8 +27,6 @@ from rich.table import Table
 from rich.align import Align
 from rich import box
 
-# Path is relative to this script's own location, not to the folder
-# you happen to be standing in when it gets launched.
 
 COMMON_PATH = Path("~").expanduser() / "WeatherCLI"
 DATA_FILE = COMMON_PATH / "data.json"
@@ -105,8 +102,8 @@ def load_data(path=DATA_FILE):
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     else:
-        print("❌ Failed to create data file")
-        return None
+        print("[red]❌ Failed to create data file[/]")
+        return {}
 
 
 def find_current_index(hourly):
@@ -271,6 +268,9 @@ def hourly_table(data, hours_ahead=6):
 def main():
     console = Console(record=True)
     data = load_data()
+    if not data:
+        console.print("[red]⚠️ No weather data available[/]")
+        return
 
     console.print(current_panel(data))
     console.print(daily_panel(data))
