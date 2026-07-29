@@ -1,9 +1,13 @@
 import requests, json
+from pathlib import Path
 from datetime import datetime
 from config import LATITUDE, LONGITUDE 
 from rich.console import Console
 
 console = Console()
+
+WEATHER_PATH = Path("~").expanduser() / "WeatherCLI"
+DATA_FILE = WEATHER_PATH / "data.json"
 
 
 url = "https://api.open-meteo.com/v1/forecast"
@@ -56,7 +60,7 @@ with console.status("[bold green]Progress...[/]"):
         req = response.json()
         req["last_updated"] = datetime.now().isoformat(timespec="seconds")
         
-        with open("data.json", "w", encoding="utf-8") as f:
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
             json.dump(req, f, indent=4, ensure_ascii=False)
         console.print("[bold green]󰄬 Done[/]")
             
