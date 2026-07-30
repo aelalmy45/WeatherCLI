@@ -100,7 +100,8 @@ def send_notification(data):
             "--title", title,
             "--content", content,
             "--id", "weather_hourly",
-            "--priority", "low",
+            "--priority", "high",
+            "--sound"
         ],
         check=True,
     )

@@ -47,7 +47,7 @@ param = {
             "is_day"
             ],
         "timezone": "Africa/Cairo",
-        "forecast_days": 2,
+        "forecast_days": 4,
     }
 
 
