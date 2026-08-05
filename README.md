@@ -95,4 +95,3 @@ Weather/
 - [rich](https://github.com/Textualize/rich)
 - A Nerd Font in your terminal (so the icons render correctly)
 - Termux:API (optional, for notifications)
-
