@@ -63,7 +63,7 @@ def load_data(path=DATA_FILE):
 
 
 def find_current_index(hourly):
-    now_key = datetime.now().strftime("%Y-%m-%dT%H:00")
+    now_key = datetime.now().strftime("%Y-%m-%dT%H:00")  # noqa: DTZ005
     times = hourly["time"]
     if now_key in times:
         return times.index(now_key)
@@ -97,11 +97,15 @@ def send_notification(data):
     subprocess.run(
         [
             "termux-notification",
-            "--title", title,
-            "--content", content,
-            "--id", "weather_hourly",
-            "--priority", "high",
-            "--sound"
+            "--title",
+            title,
+            "--content",
+            content,
+            "--id",
+            "weather_hourly",
+            "--priority",
+            "high",
+            "--sound",
         ],
         check=True,
     )
@@ -110,4 +114,3 @@ def send_notification(data):
 if __name__ == "__main__":
     weather_data = load_data()
     send_notification(weather_data)
-

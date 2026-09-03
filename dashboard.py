@@ -16,17 +16,15 @@ Run:
 """
 
 import json
-from pathlib import Path
-from datetime import datetime
 import subprocess
-import re
+from datetime import datetime
+from pathlib import Path
 
+from rich import box
+from rich.align import Align
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.align import Align
-from rich import box
-
 
 COMMON_PATH = Path().home() / "My-Project" / "WeatherCLI"
 DATA_FILE = COMMON_PATH / "data.json"
@@ -112,7 +110,7 @@ def find_current_index(hourly):
     number, so it still finds the right slot even if weather.py hasn't
     re-run since midnight (the array holds 2 days once forecast_days=2).
     """
-    now_key = datetime.now().strftime("%Y-%m-%dT%H:00")
+    now_key = datetime.now().strftime("%Y-%m-%dT%H:00")  # noqa: DTZ005
     times = hourly["time"]
     if now_key in times:
         return times.index(now_key)
@@ -161,7 +159,7 @@ def bar(value, max_value, width=12, filled_char="█", empty_char="░"):
 def get_today_temps(data):
     """All hourly temperatures that belong to today's calendar date."""
     h = data["hourly"]
-    today_str = datetime.now().strftime("%Y-%m-%d")
+    today_str = datetime.now().strftime("%Y-%m-%d")  # noqa: DTZ005
     return [
         h["temperature_2m"][i]
         for i, t in enumerate(h["time"])
@@ -179,7 +177,7 @@ def day_position_bar(data, width=24):
     d = data["daily"]
     sunrise_min = _to_minutes(d["sunrise"][0].split("T")[1])
     sunset_min = _to_minutes(d["sunset"][0].split("T")[1])
-    now = datetime.now()
+    now = datetime.now()  # noqa: DTZ005
     now_min = now.hour * 60 + now.minute
     is_day = sunrise_min <= now_min < sunset_min
     now_icon = "[yellow bold]󰖨[/]" if is_day else "[bold #B5DEDF][/]"
