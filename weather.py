@@ -6,7 +6,7 @@ from rich.console import Console
 
 console = Console()
 
-WEATHER_PATH = Path("~").expanduser() / "WeatherCLI"
+WEATHER_PATH = Path().home() / "My-Project" / "WeatherCLI"
 DATA_FILE = WEATHER_PATH / "data.json"
 
 

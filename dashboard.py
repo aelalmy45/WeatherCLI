@@ -28,10 +28,9 @@ from rich.align import Align
 from rich import box
 
 
-COMMON_PATH = Path("~").expanduser() / "WeatherCLI"
+COMMON_PATH = Path().home() / "My-Project" / "WeatherCLI"
 DATA_FILE = COMMON_PATH / "data.json"
 WEATHER_FILE = COMMON_PATH / "weather.py"
-
 
 
 # WMO weather_code -> (icon, description)
@@ -144,10 +143,12 @@ def sparkline(values):
     if hi == lo:
         return SPARK_BLOCKS[0] * len(values)
     span = hi - lo
-    return f'[#AFF233]{"".join(
-        SPARK_BLOCKS[round((v - lo) / span * (len(SPARK_BLOCKS) - 1))]
-        for v in values
-    )}[/]'
+    return f"[#AFF233]{
+        ''.join(
+            SPARK_BLOCKS[round((v - lo) / span * (len(SPARK_BLOCKS) - 1))]
+            for v in values
+        )
+    }[/]"
 
 
 def bar(value, max_value, width=12, filled_char="█", empty_char="░"):
@@ -155,6 +156,7 @@ def bar(value, max_value, width=12, filled_char="█", empty_char="░"):
     ratio = max(0.0, min(1.0, value / max_value)) if max_value else 0.0
     filled = round(ratio * width)
     return f"[#AFF233]{filled_char * filled}[/]{empty_char * (width - filled)}"
+
 
 def get_today_temps(data):
     """All hourly temperatures that belong to today's calendar date."""
@@ -199,7 +201,7 @@ def current_panel(data):
 
     humidity_bar = bar(c["relative_humidity_2m"], 100)
     wind_bar = bar(c["wind_speed_10m"], 60)
-    date_fetch = data['last_updated'].split("T")
+    date_fetch = data["last_updated"].split("T")
 
     body = (
         f"[{color}]{c['temperature_2m']}°C[/{color}]  {icon}  {desc}\n"
@@ -213,7 +215,7 @@ def current_panel(data):
         subtitle=f"Data fetched: {' | '.join(date_fetch)}",
         border_style="cyan",
         box=box.ROUNDED,
-        padding=(1, 4)
+        padding=(1, 4),
     )
 
 
@@ -227,9 +229,11 @@ def daily_panel(data):
     uv_bar = bar(uv, 12)
     day_bar = day_position_bar(data)
     uv_level = (
-        "[green bold]󰄬 Safe[/]" if uv <= 5 else
-        "[yellow bold]󰀪 High[/]" if uv <= 10 else
-        "[red bold]󰚌 Extreme[/]"
+        "[green bold]󰄬 Safe[/]"
+        if uv <= 5
+        else "[yellow bold]󰀪 High[/]"
+        if uv <= 10
+        else "[red bold]󰚌 Extreme[/]"
     )
 
     body = (
@@ -240,7 +244,13 @@ def daily_panel(data):
         f"↑ {sunrise:<45}{sunset} ↓\n\n"
         f"[yellow bold]󱣖[/]  UV Index  {uv_bar}  {uv} {uv_level}"
     )
-    return Panel(body, title="[bold magenta][/] Today", border_style="magenta", box=box.ROUNDED, padding=(1, 4))
+    return Panel(
+        body,
+        title="[bold magenta][/] Today",
+        border_style="magenta",
+        box=box.ROUNDED,
+        padding=(1, 4),
+    )
 
 
 def hourly_table(data, hours_ahead=6):
@@ -248,7 +258,12 @@ def hourly_table(data, hours_ahead=6):
     start = find_current_index(h)
     end = min(start + hours_ahead, len(h["time"]))
 
-    table = Table(title="[white]󱑆[/]  Next Hours", box=box.SIMPLE_HEAVY, highlight=True, expand=True)
+    table = Table(
+        title="[white]󱑆[/]  Next Hours",
+        box=box.SIMPLE_HEAVY,
+        highlight=True,
+        expand=True,
+    )
     table.add_column("Time", style="bold")
     table.add_column("Temp", justify="center")
     table.add_column("Sky", justify="center")
@@ -278,4 +293,4 @@ def main():
 
 
 if __name__ == "__main__":
-     main()
+    main()
