@@ -60,7 +60,7 @@ with console.status("[bold green]Progress...[/]"):
         response.raise_for_status()
 
         req = response.json()
-        req["last_updated"] = datetime.now().isoformat(timespec="seconds")  # noqa: DTZ005
+        req["last_updated"] = datetime.now().isoformat(timespec="seconds")
 
         with open(DATA_FILE, "w", encoding="utf-8") as f:
             json.dump(req, f, indent=4, ensure_ascii=False)
