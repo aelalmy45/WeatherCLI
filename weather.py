@@ -5,15 +5,33 @@ from pathlib import Path
 import requests
 from rich.console import Console
 
-from config import LATITUDE, LONGITUDE
-
 console = Console()
 
 WEATHER_PATH = Path(__file__).resolve().parent
 DATA_FILE = WEATHER_PATH / "data.json"
+CONFIG_FILE = WEATHER_PATH / "config.py"
+
+LATITUDE_DEFAULT = 30.0444
+LONGITUDE_DEFAULT = 31.2357
 
 
 url = "https://api.open-meteo.com/v1/forecast"
+
+
+def config_file() -> tuple:
+    if CONFIG_FILE.exists():
+        from config import LATITUDE, LONGITUDE
+
+        return LATITUDE, LONGITUDE
+    else:
+        print(
+            "Create a `config.py` file and enter your current coordinates into it (default coordinates have been provided until you create the file)."
+        )
+        return LATITUDE_DEFAULT, LONGITUDE_DEFAULT
+
+
+LATITUDE, LONGITUDE = config_file()
+
 
 param = {
     "latitude": LATITUDE,
