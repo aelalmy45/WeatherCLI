@@ -9,7 +9,7 @@ from config import LATITUDE, LONGITUDE
 
 console = Console()
 
-WEATHER_PATH = Path().home() / "My-Project" / "WeatherCLI"
+WEATHER_PATH = Path(__file__).resolve().parent
 DATA_FILE = WEATHER_PATH / "data.json"
 
 
