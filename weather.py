@@ -24,8 +24,8 @@ def config_file() -> tuple:
 
         return LATITUDE, LONGITUDE
     else:
-        print(
-            "Create a `config.py` file and enter your current coordinates into it (default coordinates have been provided until you create the file)."
+        console.print(
+            "[yellow bold] Create a `config.py` file and enter your current coordinates into it (default coordinates have been provided until you create the file).[/]"
         )
         return LATITUDE_DEFAULT, LONGITUDE_DEFAULT
 
