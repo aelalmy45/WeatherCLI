@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "weathercli"
+version = "1.0.0"
+description = "A beautiful terminal weather dashboard powered by Open-Meteo"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "requests>=2.34.2",
+    "rich>=15.0.0",
+]
+
+[project.scripts]
+weather = "cli:main"
+weather-fetch = "weather:main"
+weather-dashboard = "dashboard:main"
+weather-notify = "notify:main"
+
+[tool.setuptools]
+py-modules = ["weather", "dashboard", "notify", "cli"]

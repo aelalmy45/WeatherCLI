@@ -19,7 +19,7 @@ Run:
 import json
 import os
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json")
 
@@ -62,8 +62,28 @@ def load_data(path=DATA_FILE):
         return json.load(f)
 
 
-def find_current_index(hourly):
-    now_key = datetime.now().strftime("%Y-%m-%dT%H:00")  # noqa: DTZ005
+def location_now(data):
+    """Current date/time in the forecast location's timezone, as a naive
+    datetime matching the timestamps stored in data.json."""
+    tz_name = data.get("timezone")
+    if tz_name:
+        try:
+            from zoneinfo import ZoneInfo
+
+            return datetime.now(ZoneInfo(tz_name)).replace(tzinfo=None)
+        except Exception:
+            pass  # fall back to the UTC offset below
+    offset = data.get("utc_offset_seconds")
+    if offset is not None:
+        return datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
+            seconds=offset
+        )
+    return datetime.now()
+
+
+def find_current_index(hourly, now=None):
+    now = now or datetime.now()
+    now_key = now.strftime("%Y-%m-%dT%H:00")  # noqa: DTZ005
     times = hourly["time"]
     if now_key in times:
         return times.index(now_key)
@@ -72,7 +92,7 @@ def find_current_index(hourly):
 
 def current_from_hourly(data):
     h = data["hourly"]
-    i = find_current_index(h)
+    i = find_current_index(h, location_now(data))
     return {
         "temperature_2m": h["temperature_2m"][i],
         "apparent_temperature": h["apparent_temperature"][i],
@@ -111,6 +131,10 @@ def send_notification(data):
     )
 
 
-if __name__ == "__main__":
+def main():
     weather_data = load_data()
     send_notification(weather_data)
+
+
+if __name__ == "__main__":
+    main()
