@@ -31,7 +31,7 @@ The project is split into small, independent scripts:
 1. Clone the repo and install dependencies:
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/aelalmy45/WeatherCLI.git
 cd WeatherCLI
 pip install -r requirements.txt
 ```
@@ -75,6 +75,8 @@ chmod +x run_weather.sh run_notify.sh
 termux-job-scheduler -s $HOME/WeatherCLI/run_weather.sh --job-id 1 --period-ms 86400000 --persisted true
 termux-job-scheduler -s $HOME/WeatherCLI/run_notify.sh --job-id 2 --period-ms 3600000 --persisted true
 ```
+
+The wrapper scripts resolve their own location, so the scheduled jobs work no matter where you cloned the repo - just point `-s` at the script's actual path.
 
 ## Project structure
 
