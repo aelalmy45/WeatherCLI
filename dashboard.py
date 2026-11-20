@@ -2,10 +2,15 @@
 Weather dashboard for Termux - reads data.json (produced by weather.py)
 and prints a styled terminal report using the `rich` library.
 
-weather.py only needs to run once a day (it fetches the whole day's
-hourly forecast). This script can be run any time - it always finds
-the entry in the hourly arrays that matches the real current date and
-hour, so the numbers stay accurate even without re-fetching.
+weather.py only needs to run once a day (it fetches several days of
+hourly + daily forecast). This script can be run any time - it always
+finds the entry in the hourly arrays that matches the real current date
+and hour, so the numbers stay accurate even without re-fetching.
+
+Times in data.json are local to the forecast location (weather.py asks
+Open-Meteo for timezone=auto). This script converts "now" into the
+location's timezone, so the dashboard is correct even when you look up
+a city in another timezone.
 
 Setup:
     pip install rich
@@ -17,7 +22,8 @@ Run:
 
 import json
 import subprocess
-from datetime import datetime
+import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from rich import box
@@ -80,11 +86,30 @@ def temp_color(temp):
     return "bold cyan"
 
 
+def location_now(data):
+    """Current date/time in the forecast location's timezone, as a naive
+    datetime matching the timestamps stored in data.json."""
+    tz_name = data.get("timezone")
+    if tz_name:
+        try:
+            from zoneinfo import ZoneInfo
+
+            return datetime.now(ZoneInfo(tz_name)).replace(tzinfo=None)
+        except Exception:
+            pass  # fall back to the UTC offset below
+    offset = data.get("utc_offset_seconds")
+    if offset is not None:
+        return datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
+            seconds=offset
+        )
+    return datetime.now()
+
+
 def create_file():
     if not DATA_FILE.exists():
         try:
             subprocess.run(
-                ["python", WEATHER_FILE],
+                [sys.executable, WEATHER_FILE],
                 cwd=COMMON_PATH,
                 check=True,
             )
@@ -103,14 +128,15 @@ def load_data(path=DATA_FILE):
         return {}
 
 
-def find_current_index(hourly):
-    """Index in the hourly arrays matching today's date + current hour.
+def find_current_index(hourly, now=None):
+    """Index in the hourly arrays matching the location's date + hour.
 
     Matches on the full "YYYY-MM-DDTHH:00" key rather than just the hour
     number, so it still finds the right slot even if weather.py hasn't
-    re-run since midnight (the array holds 2 days once forecast_days=2).
+    re-run since midnight.
     """
-    now_key = datetime.now().strftime("%Y-%m-%dT%H:00")
+    now = now or datetime.now()
+    now_key = now.strftime("%Y-%m-%dT%H:00")
     times = hourly["time"]
     if now_key in times:
         return times.index(now_key)
@@ -122,7 +148,7 @@ def current_from_hourly(data):
     index that matches right now, instead of the (possibly stale)
     top-level "current" field."""
     h = data["hourly"]
-    i = find_current_index(h)
+    i = find_current_index(h, location_now(data))
     return {
         "temperature_2m": h["temperature_2m"][i],
         "apparent_temperature": h["apparent_temperature"][i],
@@ -141,12 +167,11 @@ def sparkline(values):
     if hi == lo:
         return SPARK_BLOCKS[0] * len(values)
     span = hi - lo
-    return f"[#AFF233]{
-        ''.join(
-            SPARK_BLOCKS[round((v - lo) / span * (len(SPARK_BLOCKS) - 1))]
-            for v in values
-        )
-    }[/]"
+    chars = "".join(
+        SPARK_BLOCKS[round((v - lo) / span * (len(SPARK_BLOCKS) - 1))]
+        for v in values
+    )
+    return f"[#AFF233]{chars}[/]"
 
 
 def bar(value, max_value, width=12, filled_char="█", empty_char="░"):
@@ -157,9 +182,9 @@ def bar(value, max_value, width=12, filled_char="█", empty_char="░"):
 
 
 def get_today_temps(data):
-    """All hourly temperatures that belong to today's calendar date."""
+    """All hourly temperatures that belong to the location's calendar date."""
     h = data["hourly"]
-    today_str = datetime.now().strftime("%Y-%m-%d")
+    today_str = location_now(data).strftime("%Y-%m-%d")
     return [
         h["temperature_2m"][i]
         for i, t in enumerate(h["time"])
@@ -177,7 +202,7 @@ def day_position_bar(data, width=24):
     d = data["daily"]
     sunrise_min = _to_minutes(d["sunrise"][0].split("T")[1])
     sunset_min = _to_minutes(d["sunset"][0].split("T")[1])
-    now = datetime.now()
+    now = location_now(data)
     now_min = now.hour * 60 + now.minute
     is_day = sunrise_min <= now_min < sunset_min
     now_icon = "[yellow bold]󰖨[/]" if is_day else "[bold #B5DEDF][/]"
@@ -201,6 +226,10 @@ def current_panel(data):
     wind_bar = bar(c["wind_speed_10m"], 60)
     date_fetch = data["last_updated"].split("T")
 
+    title = "[bold cyan][/]  Current Weather"
+    if data.get("location"):
+        title += f" - {data['location']}"
+
     body = (
         f"[{color}]{c['temperature_2m']}°C[/{color}]  {icon}  {desc}\n"
         f"Feels like: {c['apparent_temperature']}°C\n\n"
@@ -209,7 +238,7 @@ def current_panel(data):
     )
     return Panel(
         Align.left(body),
-        title="[bold cyan][/]  Current Weather",
+        title=title,
         subtitle=f"Data fetched: {' | '.join(date_fetch)}",
         border_style="cyan",
         box=box.ROUNDED,
@@ -253,7 +282,7 @@ def daily_panel(data):
 
 def hourly_table(data, hours_ahead=6):
     h = data["hourly"]
-    start = find_current_index(h)
+    start = find_current_index(h, location_now(data))
     end = min(start + hours_ahead, len(h["time"]))
 
     table = Table(
@@ -278,6 +307,52 @@ def hourly_table(data, hours_ahead=6):
     return table
 
 
+def forecast_table(data):
+    """A row per forecast day: weekday, sky, min/max temps, rain chance, UV."""
+    d = data["daily"]
+    days = d.get("time") or []
+    codes = d.get("weather_code") or []
+    rain = d.get("precipitation_probability_max") or []
+    uv = d.get("uv_index_max") or []
+
+    table = Table(
+        title="[white][/]  Next Days",
+        box=box.SIMPLE_HEAVY,
+        highlight=True,
+        expand=True,
+    )
+    table.add_column("Day", style="bold")
+    table.add_column("Sky", justify="center")
+    table.add_column("Min", justify="center")
+    table.add_column("Max", justify="center")
+    table.add_column("Rain %", justify="center")
+    table.add_column("UV", justify="center")
+
+    for i, day in enumerate(days):
+        date = datetime.strptime(day, "%Y-%m-%d")
+        label = "Today" if i == 0 else date.strftime("%a %d %b")
+
+        icon = "❓"
+        if i < len(codes):
+            icon, _ = get_icon(codes[i], is_day=1)
+
+        t_min = d["temperature_2m_min"][i]
+        t_max = d["temperature_2m_max"][i]
+        rain_pct = f"{rain[i]}%" if i < len(rain) and rain[i] is not None else "-"
+        uv_val = f"{uv[i]}" if i < len(uv) and uv[i] is not None else "-"
+
+        table.add_row(
+            label,
+            icon,
+            f"[{temp_color(t_min)}]{t_min}°C[/{temp_color(t_min)}]",
+            f"[{temp_color(t_max)}]{t_max}°C[/{temp_color(t_max)}]",
+            rain_pct,
+            uv_val,
+        )
+
+    return table
+
+
 def main():
     console = Console(record=True)
     data = load_data()
@@ -288,6 +363,7 @@ def main():
     console.print(current_panel(data))
     console.print(daily_panel(data))
     console.print(hourly_table(data))
+    console.print(forecast_table(data))
 
 
 if __name__ == "__main__":
