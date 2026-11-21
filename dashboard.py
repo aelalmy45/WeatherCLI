@@ -95,7 +95,7 @@ def location_now(data):
             from zoneinfo import ZoneInfo
 
             return datetime.now(ZoneInfo(tz_name)).replace(tzinfo=None)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass  # fall back to the UTC offset below
     offset = data.get("utc_offset_seconds")
     if offset is not None:
@@ -128,6 +128,13 @@ def load_data(path=DATA_FILE):
         return {}
 
 
+def _find_index(times, key):
+    for idx, time in enumerate(times):
+        if time == key:
+            return idx
+    return None
+
+
 def find_current_index(hourly, now=None):
     """Index in the hourly arrays matching the location's date + hour.
 
@@ -137,10 +144,7 @@ def find_current_index(hourly, now=None):
     """
     now = now or datetime.now()
     now_key = now.strftime("%Y-%m-%dT%H:00")
-    times = hourly["time"]
-    if now_key in times:
-        return times.index(now_key)
-    return None
+    return _find_index(hourly["time"], now_key)
 
 
 def current_from_hourly(data):
@@ -199,15 +203,15 @@ def _to_minutes(hhmm):
     return hh * 60 + mm
 
 
-def day_position_bar(data, width=24):
+def day_position_bar(data, i, width=24):
     """A 24-char bar with ↑ at sunrise, ↓ at sunset, 󰖨 / at right now."""
     d = data["daily"]
-    sunrise_min = _to_minutes(d["sunrise"][0].split("T")[1])
-    sunset_min = _to_minutes(d["sunset"][0].split("T")[1])
+    sunrise_min = _to_minutes(d["sunrise"][i].split("T")[1])
+    sunset_min = _to_minutes(d["sunset"][i].split("T")[1])
     now = location_now(data)
     now_min = now.hour * 60 + now.minute
     is_day = sunrise_min <= now_min < sunset_min
-    now_icon = "[yellow bold]󰖨[/]" if is_day else "[bold #B5DEDF][/]"
+    now_icon = "[bold #FFF217]󰖨[/]" if is_day else "[bold #50B1FF][/]"
 
     def pos(m):
         return min(width - 1, max(0, round(m / (24 * 60) * (width - 1))))
@@ -253,13 +257,19 @@ def current_panel(data):
 
 def daily_panel(data):
     d = data["daily"]
-    sunrise = d["sunrise"][0].split("T")[1]
-    sunset = d["sunset"][0].split("T")[1]
-    uv = d["uv_index_max"][0]
+
+    today_key = location_now(data).strftime("%Y-%m-%d")
+    i = _find_index(d["time"], today_key)
+    if i is None:
+        return None
+
+    sunrise = d["sunrise"][i].split("T")[1]
+    sunset = d["sunset"][i].split("T")[1]
+    uv = d["uv_index_max"][i]
 
     spark = sparkline(get_today_temps(data))
     uv_bar = bar(uv, 12)
-    day_bar = day_position_bar(data)
+    day_bar = day_position_bar(data, i)
     uv_level = (
         "[green bold]󰄬 Safe[/]"
         if uv <= 5
@@ -269,8 +279,8 @@ def daily_panel(data):
     )
 
     body = (
-        f"Max: [bold red]{d['temperature_2m_max'][0]}°C[/bold red]   "
-        f"Min: [bold cyan]{d['temperature_2m_min'][0]}°C[/bold cyan]\n\n"
+        f"Max: [bold red]{d['temperature_2m_max'][i]}°C[/bold red]   "
+        f"Min: [bold cyan]{d['temperature_2m_min'][i]}°C[/bold cyan]\n\n"
         f"Trend:  {spark}\n\n"
         f"{day_bar}\n"
         f"↑ {sunrise:<45}{sunset} ↓\n\n"
@@ -336,9 +346,10 @@ def forecast_table(data):
     table.add_column("Rain %", justify="center")
     table.add_column("UV", justify="center")
 
+    today_key = location_now(data).strftime("%Y-%m-%d")
     for i, day in enumerate(days):
         date = datetime.strptime(day, "%Y-%m-%d")
-        label = "Today" if i == 0 else date.strftime("%a %d %b")
+        label = "Today" if day == today_key else date.strftime("%a %d %b")
 
         icon = "❓"
         if i < len(codes):
@@ -373,7 +384,14 @@ def main():
         console.print("[yellow]⚠️ No current data is available.[/]")
     else:
         console.print(current)
-    console.print(daily_panel(data))
+
+    daily = daily_panel(data)
+
+    if daily is None:
+        console.print("[yellow]⚠️ No daily data is available.[/]")
+    else:
+        console.print(daily)
+
     hourly = hourly_table(data)
     if hourly is None:
         console.print("[yellow]⚠️ No hourly data is available.[/]")
