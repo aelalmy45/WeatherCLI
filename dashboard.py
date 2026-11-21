@@ -95,7 +95,7 @@ def location_now(data):
             from zoneinfo import ZoneInfo
 
             return datetime.now(ZoneInfo(tz_name)).replace(tzinfo=None)
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass  # fall back to the UTC offset below
     offset = data.get("utc_offset_seconds")
     if offset is not None:
@@ -140,7 +140,7 @@ def find_current_index(hourly, now=None):
     times = hourly["time"]
     if now_key in times:
         return times.index(now_key)
-    return max(0, len(times) - 1)  # fallback: last known entry
+    return None
 
 
 def current_from_hourly(data):
@@ -149,6 +149,9 @@ def current_from_hourly(data):
     top-level "current" field."""
     h = data["hourly"]
     i = find_current_index(h, location_now(data))
+    if i is None:
+        return None
+
     return {
         "temperature_2m": h["temperature_2m"][i],
         "apparent_temperature": h["apparent_temperature"][i],
@@ -168,8 +171,7 @@ def sparkline(values):
         return SPARK_BLOCKS[0] * len(values)
     span = hi - lo
     chars = "".join(
-        SPARK_BLOCKS[round((v - lo) / span * (len(SPARK_BLOCKS) - 1))]
-        for v in values
+        SPARK_BLOCKS[round((v - lo) / span * (len(SPARK_BLOCKS) - 1))] for v in values
     )
     return f"[#AFF233]{chars}[/]"
 
@@ -219,6 +221,9 @@ def day_position_bar(data, width=24):
 
 def current_panel(data):
     c = current_from_hourly(data)
+    if c is None:
+        return None
+
     icon, desc = get_icon(c["weather_code"], c["is_day"])
     color = temp_color(c["temperature_2m"])
 
@@ -283,6 +288,9 @@ def daily_panel(data):
 def hourly_table(data, hours_ahead=6):
     h = data["hourly"]
     start = find_current_index(h, location_now(data))
+    if start is None:
+        return None
+
     end = min(start + hours_ahead, len(h["time"]))
 
     table = Table(
@@ -359,10 +367,20 @@ def main():
     if not data:
         console.print("[red]⚠️ No weather data available[/]")
         return
+    current = current_panel(data)
 
-    console.print(current_panel(data))
+    if current is None:
+        console.print("[yellow]⚠️ No current data is available.[/]")
+    else:
+        console.print(current)
+
+    hourly = hourly_table(data)
+    if hourly is None:
+        console.print("[yellow]⚠️ No hourly data is available.[/]")
+    else:
+        console.print(hourly)
+
     console.print(daily_panel(data))
-    console.print(hourly_table(data))
     console.print(forecast_table(data))
 
 
