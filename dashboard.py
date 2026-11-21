@@ -373,14 +373,13 @@ def main():
         console.print("[yellow]⚠️ No current data is available.[/]")
     else:
         console.print(current)
-
+    console.print(daily_panel(data))
     hourly = hourly_table(data)
     if hourly is None:
         console.print("[yellow]⚠️ No hourly data is available.[/]")
     else:
         console.print(hourly)
 
-    console.print(daily_panel(data))
     console.print(forecast_table(data))
 
 
